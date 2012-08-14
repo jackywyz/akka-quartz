@@ -1,0 +1,103 @@
+package com.blue
+import akka.actor.{Cancellable, ActorRef, Actor}
+import akka.event.Logging
+import org.quartz.impl.StdSchedulerFactory
+import java.util.Properties
+import org.quartz._
+import utils.Key
+
+
+case class AddCronSchedule(to: ActorRef, cron: String, message: Any, reply: Boolean = false)
+
+trait AddCronScheduleResult
+
+case class AddCronScheduleSuccess(cancel: Cancellable) extends AddCronScheduleResult
+
+case class AddCronScheduleFailure(reason: Throwable) extends AddCronScheduleResult
+
+case class RemoveJob(cancel: Cancellable)
+
+private class QuartzIsNotScalaExecutor() extends Job {
+	def execute(ctx: JobExecutionContext) {
+		val jdm = ctx.getJobDetail.getJobDataMap() // Really?
+		val msg = jdm.get("message")
+		val actor = jdm.get("actor").asInstanceOf[ActorRef]
+		actor ! msg
+	}
+}
+
+class QuartzActor extends Actor {
+	val log = Logging(context.system, this)
+
+	// Create a sane default quartz scheduler
+	private[this] val props = new Properties()
+	props.setProperty("org.quartz.scheduler.instanceName", context.self.path.name)
+	props.setProperty("org.quartz.threadPool.threadCount", "1")
+	props.setProperty("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore")
+	props.setProperty("org.quartz.scheduler.skipUpdateCheck", "true")	// Whoever thought this was smart shall be shot
+
+	val scheduler = new StdSchedulerFactory(props).getScheduler
+
+
+	/**
+	 * Cancellable to later kill the job. Yes this is mutable, I'm sorry.
+	 * @param job
+	 */
+	class CancelSchedule(val job: JobKey, val trig: TriggerKey) extends Cancellable {
+		var cancelled = false
+
+		def isCancelled: Boolean = cancelled
+
+		def cancel() {
+			context.self ! RemoveJob(this)
+		}
+
+	}
+
+	override def preStart() {
+		scheduler.start()
+		log.info("Scheduler started")
+	}
+
+	override def postStop() {
+		scheduler.shutdown()
+	}
+
+	def receive = {
+		case RemoveJob(cancel) => cancel match {
+			case cs: CancelSchedule => scheduler.deleteJob(cs.job); cs.cancelled = true
+			case _ => log.error("Incorrect cancelable sent")
+		}
+		case AddCronSchedule(to, cron, message, reply) =>
+			// Try to derive a unique name for this job
+			val jobkey = new JobKey(Key.DEFAULT_GROUP, "%X".format((to.toString() + message.toString + cron + "job").hashCode))
+			val trigkey = new TriggerKey(Key.DEFAULT_GROUP, to.toString() + message.toString + cron + "trigger")
+
+			val jd = org.quartz.JobBuilder.newJob(classOf[QuartzIsNotScalaExecutor])
+			val jdm = new JobDataMap()
+			jdm.put("message", message)
+			jdm.put("actor", to)
+			val job = jd.usingJobData(jdm).withIdentity(jobkey).build()
+
+			try {
+				scheduler.scheduleJob(job, org.quartz.TriggerBuilder.newTrigger().startNow()
+					.withIdentity(trigkey).forJob(job)
+					.withSchedule(org.quartz.CronScheduleBuilder.cronSchedule(cron)).build())
+
+				if (reply)
+					context.sender ! AddCronScheduleSuccess(new CancelSchedule(jobkey, trigkey))
+
+			} catch { // Quartz will drop a throwable if you give it an invalid cron expression - pass that info on
+				case e: Throwable =>
+					log.error("Quartz failed to add a task: ", e)
+					if (reply)
+						context.sender ! AddCronScheduleFailure(e)
+
+			}
+
+
+		case _ => //
+	}
+
+
+}
