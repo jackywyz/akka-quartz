@@ -4,6 +4,10 @@ Include the following dependency in your `build.sbt`:
 
     "com.blue" % "akka-quartz_2.9.2" % "0.1.0"
 
+Include the following resolver in your `build.sbt`:
+    
+    resolvers +="blue repo" at "http://blueway.github.com/repo/release"
+
 coding demo:
 
 ```scala
