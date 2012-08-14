@@ -1,4 +1,10 @@
-###Using
+###Using###
+
+Include the following dependency in your `build.sbt`:
+
+    "com.blue" % "akka-quartz_2.9.2" % "0.1.0"
+
+coding demo:
 
 ```scala
 import akka.actor._
