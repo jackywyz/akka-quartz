@@ -1,6 +1,6 @@
 package com.blue
 /*
-Copyright 2012 Yann Ramin
+Copyright 2012 Yann Ramin and jackywyz
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ import org.quartz.impl.StdSchedulerFactory
 import java.util.Properties
 import org.quartz._
 import utils.Key
-
+import com.typesafe.config._
 
 case class AddCronSchedule(to: ActorRef, cron: String, message: Any, reply: Boolean = false)
+//case class UpdateCronSchedule(ctx:JobExecutionContext ,cron: String, reply: Boolean = false)
 
 trait AddCronScheduleResult
 
@@ -37,8 +38,17 @@ private class QuartzIsNotScalaExecutor() extends Job {
 		val jdm = ctx.getJobDetail.getJobDataMap() // Really?
 		val msg = jdm.get("message")
 		val actor = jdm.get("actor").asInstanceOf[ActorRef]
+		val self= jdm.get("self").asInstanceOf[ActorRef]
+                var cron = jdm.getString("cron")
+                val config = ConfigFactory.load
+                try{cron = config.getString("quartz.cron")}catch{case x:ConfigException =>}
 		actor ! msg
-	}
+                if(cron != jdm.get("cron")){
+                  val schel = ctx.getScheduler
+                  schel.deleteJob(ctx.getJobDetail().getKey)
+                  self ! AddCronSchedule(actor,cron,msg) 
+	      }
+        }
 }
 
 class QuartzActor extends Actor {
@@ -92,6 +102,8 @@ class QuartzActor extends Actor {
 			val jdm = new JobDataMap()
 			jdm.put("message", message)
 			jdm.put("actor", to)
+			jdm.put("self", self)
+			jdm.put("cron", cron)
 			val job = jd.usingJobData(jdm).withIdentity(jobkey).build()
 
 			try {
@@ -109,6 +121,11 @@ class QuartzActor extends Actor {
 						context.sender ! AddCronScheduleFailure(e)
 
 			}
+
+                /*case UpdateCronSchedule(ctx,cron,replay)=>
+                      scheduler.rescheduleJob(ctx.getTrigger().getKey, org.quartz.TriggerBuilder.newTrigger().startNow()
+					.withIdentity(ctx.getTrigger().getKey).forJob(ctx.getJobDetail)
+					.withSchedule(org.quartz.CronScheduleBuilder.cronSchedule(cron)).build())*/
 
 
 		case _ => //
