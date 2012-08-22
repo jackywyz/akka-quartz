@@ -1,5 +1,5 @@
 ###copyright###
-core scala code forking at [theatrus/akka-quartz](https://github.com/theatrus/akka-quartz)
+core scala code(QuartzActor.scala) forking at [theatrus/akka-quartz](https://github.com/theatrus/akka-quartz)
 ###Using###
 
 Include the following dependency in your `build.sbt`:
