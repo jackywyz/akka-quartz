@@ -36,3 +36,36 @@ object RunT{
 }
 
 ```
+
+###Log config###
+add the logback.xml file at the directory of `src/main/resources`
+and add following configs in:  
+
+```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <encoder>
+            <pattern>%date{MM/dd HH:mm:ss} %-5level[%thread] %logger{1} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>quartz.log</file>
+        <append>false</append>
+        <encoder>
+            <pattern>%date{MM/dd HH:mm:ss} %-5level[%thread] %logger{1} - %msg%n</pattern>
+        </encoder>
+    </appender> -->
+
+    <logger name="akka" level="DEBUG" />
+
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+        <!--<appender-ref ref="FILE"/>-->
+    </root>
+
+</configuration>
+```
