@@ -10,6 +10,10 @@ Include the following resolver in your `build.sbt`:
     
     resolvers +="blue repo" at "http://blueway.github.com/repo/release"
 
+config the cron expression in your `application.conf`:
+    
+    quartz.cron="0/15 * * * * ?"
+
 coding demo:
 
 ```scala
