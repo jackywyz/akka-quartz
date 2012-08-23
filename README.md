@@ -20,7 +20,7 @@ config the cron expression in your `application.conf`:
 
 config the following start parameter if jar runnig:
    
-  -Dconfig.resource=/application.conf
+    -Dconfig.resource=/application.conf
 
 coding demo:
 
@@ -42,6 +42,7 @@ object RunT{
    val system = ActorSystem("sys") 
    val quartzActor = system.actorOf(Props[QuartzActor])
    val dest= system.actorOf(Props[PrintActor])
+  //default jobname is "job"
   quartzActor ! AddCronSchedule(dest, "0/5 * * * * ?", Message("hello"))
   quartzActor ! AddCronSchedule(dest, "0/15 * * * * ?", Message("world"),"job1")
   }
