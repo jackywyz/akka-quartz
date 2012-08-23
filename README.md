@@ -20,7 +20,7 @@ config the cron expression in your `application.conf`:
 
 config the following start parameter if jar runnig:
    
-  -Dconfig.resource=/application.conf
+    -Dconfig.resource=/application.conf
 
 coding demo:
 
