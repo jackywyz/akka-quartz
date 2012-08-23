@@ -16,7 +16,7 @@ object RunT{
    val quartzActor = system.actorOf(Props[QuartzActor])
    val dest= system.actorOf(Props[PrintActor])
   quartzActor ! AddCronSchedule(dest, "0/5 * * * * ?", Message("hello"),"job1")
-  quartzActor ! AddCronSchedule(dest, "0/20 * * * * ?",Message("hello2"),"job2")
+  quartzActor ! AddCronSchedule(dest, "0/20 * * * * ?",Message("world"),"job2")
   }
 
 }

@@ -4,7 +4,7 @@ core scala code(QuartzActor.scala) forking at [theatrus/akka-quartz](https://git
 
 Include the following dependency in your `build.sbt`:
 
-    "com.blue" % "akka-quartz_2.9.2" % "0.1.1"
+    "com.blue" % "akka-quartz_2.9.2" % "0.1.2"
 
 Include the following resolver in your `build.sbt`:
     
@@ -16,6 +16,9 @@ config the cron expression in your `application.conf`:
      job.cron="0/15 * * * * ?"
      job1.cron="0/15 * * * * ?"
      job2.cron="0/15 * * * * ?"
+     threadPool.threadCount="2"
+     jobStore.class=""
+     scheduler.skipUpdateCheck=""
     }
 
 config the following start parameter if jar runnig:

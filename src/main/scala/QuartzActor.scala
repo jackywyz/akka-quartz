@@ -54,24 +54,29 @@ private class QuartzIsNotScalaExecutor() extends Job {
 object QuartzActor{
 
   def getCron(cron:String,jobname:String):String = {
+       getQuartzProp(jobname+".cron",cron)
+  }
+  def getQuartzProp(key:String,ret:String=""):String={
        val config = ConfigFactory.load
-       try{val qcron = config.getConfig("quartz").getString(jobname+".cron"); qcron}catch{case x:ConfigException => cron}
+       try{val qcron = config.getConfig("quartz").getString(key); qcron}catch{case x:ConfigException => ret}
 
   }
 }
 
 class QuartzActor extends Actor {
+        
 	val log = Logging(context.system, this)
-
 	// Create a sane default quartz scheduler
 	private[this] val props = new Properties()
+        
 	props.setProperty("org.quartz.scheduler.instanceName", context.self.path.name)
-	props.setProperty("org.quartz.threadPool.threadCount", "1")
-	props.setProperty("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore")
-	props.setProperty("org.quartz.scheduler.skipUpdateCheck", "true")	// Whoever thought this was smart shall be shot
+	props.setProperty("org.quartz.threadPool.threadCount", QuartzActor.getQuartzProp("threadPool.threadCount","1"))
+	props.setProperty("org.quartz.jobStore.class",
+	  QuartzActor.getQuartzProp("jobStore.class","org.quartz.simpl.RAMJobStore"))
+	props.setProperty("org.quartz.scheduler.skipUpdateCheck",
+	  QuartzActor.getQuartzProp("scheduler.skipUpdateCheck","true"))	// Whoever thought this was smart shall be shot
 
 	val scheduler = new StdSchedulerFactory(props).getScheduler
-
 
 	/**
 	 * Cancellable to later kill the job. Yes this is mutable, I'm sorry.
