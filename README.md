@@ -17,11 +17,13 @@ config the cron expression in your `application.conf`:
      job.cron="0/15 * * * * ?"
      job1.cron="0/15 * * * * ?"
      job2.cron="0/15 * * * * ?"
-     threadPool.threadCount="2" # it is the same at prop:("org.quartz.threadPool.threadCount")
+     threadPool.threadCount="2" # it is the same as prop:("org.quartz.threadPool.threadCount")
      jobStore.class=""
      scheduler.skipUpdateCheck=""
      props{
-       threadPool-threadCount=3 # it is the same at prop:("org.quartz.threadPool.threadCount")
+       threadPool-threadCount=3 # it is the same as prop:("org.quartz.threadPool.threadCount")
+       jobStore-isClustered = true
+       jobStore-clusterCheckinInterval = 2000
      }
     }
 ```
