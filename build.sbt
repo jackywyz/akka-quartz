@@ -2,7 +2,7 @@ organization := "com.blue"
 
 name := "akka-quartz"
 
-version := "0.1.0"
+version := "0.1.1"
 
 scalaVersion :="2.9.2"
 

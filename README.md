@@ -4,7 +4,7 @@ core scala code(QuartzActor.scala) forking at [theatrus/akka-quartz](https://git
 
 Include the following dependency in your `build.sbt`:
 
-    "com.blue" % "akka-quartz_2.9.2" % "0.1.0"
+    "com.blue" % "akka-quartz_2.9.2" % "0.1.1"
 
 Include the following resolver in your `build.sbt`:
     
@@ -12,7 +12,15 @@ Include the following resolver in your `build.sbt`:
 
 config the cron expression in your `application.conf`:
     
-    quartz.cron="0/15 * * * * ?"
+    quartz{
+     job.cron="0/15 * * * * ?"
+     job1.cron="0/15 * * * * ?"
+     job2.cron="0/15 * * * * ?"
+    }
+
+config the following start parameter if jar runnig:
+   
+  -Dconfig.resource=/application.conf
 
 coding demo:
 
@@ -35,6 +43,7 @@ object RunT{
    val quartzActor = system.actorOf(Props[QuartzActor])
    val dest= system.actorOf(Props[PrintActor])
   quartzActor ! AddCronSchedule(dest, "0/5 * * * * ?", Message("hello"))
+  quartzActor ! AddCronSchedule(dest, "0/15 * * * * ?", Message("world"),"job1")
   }
 
 }

@@ -22,7 +22,7 @@ import org.quartz._
 import utils.Key
 import com.typesafe.config._
 
-case class AddCronSchedule(to: ActorRef, cron: String, message: Any, reply: Boolean = false)
+case class AddCronSchedule(to: ActorRef, cron: String, message: Any,jobname:String="job", reply: Boolean = false)
 //case class UpdateCronSchedule(ctx:JobExecutionContext ,cron: String, reply: Boolean = false)
 
 trait AddCronScheduleResult
@@ -39,16 +39,25 @@ private class QuartzIsNotScalaExecutor() extends Job {
 		val msg = jdm.get("message")
 		val actor = jdm.get("actor").asInstanceOf[ActorRef]
 		val self= jdm.get("self").asInstanceOf[ActorRef]
-                var cron = jdm.getString("cron")
-                val config = ConfigFactory.load
-                try{cron = config.getString("quartz.cron")}catch{case x:ConfigException =>}
-		actor ! msg
-                if(cron != jdm.get("cron")){
+                val cron = jdm.getString("cron")
+                val jobname= jdm.getString("jobname")
+                val qcron = QuartzActor getCron (cron,jobname)
+                actor ! msg
+                if(cron != qcron){
                   val schel = ctx.getScheduler
                   schel.deleteJob(ctx.getJobDetail().getKey)
-                  self ! AddCronSchedule(actor,cron,msg) 
+                  self ! AddCronSchedule(actor,qcron,msg) 
 	      }
         }
+}
+
+object QuartzActor{
+
+  def getCron(cron:String,jobname:String):String = {
+       val config = ConfigFactory.load
+       try{val qcron = config.getConfig("quartz").getString(jobname+".cron"); qcron}catch{case x:ConfigException => cron}
+
+  }
 }
 
 class QuartzActor extends Actor {
@@ -93,8 +102,9 @@ class QuartzActor extends Actor {
 			case cs: CancelSchedule => scheduler.deleteJob(cs.job); cs.cancelled = true
 			case _ => log.error("Incorrect cancelable sent")
 		}
-		case AddCronSchedule(to, cron, message, reply) =>
+		case AddCronSchedule(to, qcron, message,jobname, reply) =>
 			// Try to derive a unique name for this job
+                        val cron = QuartzActor getCron (qcron,jobname)
 			val jobkey = new JobKey(Key.DEFAULT_GROUP, "%X".format((to.toString() + message.toString + cron + "job").hashCode))
 			val trigkey = new TriggerKey(Key.DEFAULT_GROUP, to.toString() + message.toString + cron + "trigger")
 
@@ -104,6 +114,7 @@ class QuartzActor extends Actor {
 			jdm.put("actor", to)
 			jdm.put("self", self)
 			jdm.put("cron", cron)
+			jdm.put("jobname", jobname)
 			val job = jd.usingJobData(jdm).withIdentity(jobkey).build()
 
 			try {
