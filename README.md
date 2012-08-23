@@ -4,7 +4,7 @@ core scala code(QuartzActor.scala) forking at [theatrus/akka-quartz](https://git
 
 Include the following dependency in your `build.sbt`:
 
-    "com.blue" % "akka-quartz_2.9.2" % "0.1.2"
+    "com.blue" % "akka-quartz_2.9.2" % "0.1.3"
 
 Include the following resolver in your `build.sbt`:
     
