@@ -26,6 +26,9 @@ config the cron expression in your `application.conf`:
     }
 ```
 
+config cluster:
+   [quartz-cluster-config-ref](http://quartz-scheduler.org/documentation/quartz-2.x/configuration/ConfigJDBCJobStoreClustering)
+  
 config the following start parameter if jar runnig:
    
     -Dconfig.resource=/application.conf
@@ -94,5 +97,3 @@ and add following configs in:
 
 
 ##TODO
-* add CLUSTERED support
-
