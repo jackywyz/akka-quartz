@@ -11,15 +11,20 @@ Include the following resolver in your `build.sbt`:
     resolvers +="blue repo" at "http://blueway.github.com/repo/release"
 
 config the cron expression in your `application.conf`:
-    
+   
+```properties
     quartz{
      job.cron="0/15 * * * * ?"
      job1.cron="0/15 * * * * ?"
      job2.cron="0/15 * * * * ?"
-     threadPool.threadCount="2"
+     threadPool.threadCount="2" # it is the same at prop:("org.quartz.threadPool.threadCount")
      jobStore.class=""
      scheduler.skipUpdateCheck=""
+     props{
+       threadPool-threadCount=3 # it is the same at prop:("org.quartz.threadPool.threadCount")
+     }
     }
+```
 
 config the following start parameter if jar runnig:
    

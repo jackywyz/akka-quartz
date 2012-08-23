@@ -61,6 +61,11 @@ object QuartzActor{
        try{val qcron = config.getConfig("quartz").getString(key); qcron}catch{case x:ConfigException => ret}
 
   }
+  def getPropObject(name:String):ConfigObject = {
+     val config = ConfigFactory.load
+     try{val qcron = config.getObject(name); qcron}catch{case x:ConfigException => null}
+
+  }
 }
 
 class QuartzActor extends Actor {
@@ -75,8 +80,22 @@ class QuartzActor extends Actor {
 	  QuartzActor.getQuartzProp("jobStore.class","org.quartz.simpl.RAMJobStore"))
 	props.setProperty("org.quartz.scheduler.skipUpdateCheck",
 	  QuartzActor.getQuartzProp("scheduler.skipUpdateCheck","true"))	// Whoever thought this was smart shall be shot
-
-	val scheduler = new StdSchedulerFactory(props).getScheduler
+      
+        /**
+         * init all quartz props at the application.conf file
+         */
+        def initProps = {
+           val sets = QuartzActor.getPropObject("quartz.props")
+           val it= if(sets !=null)  sets.entrySet.iterator else null
+           while(it !=null && it.hasNext){
+             val n = it.next
+             props.setProperty("org.quartz."+n.getKey.replace("-","."),n.getValue.render)
+           }
+        }
+	val scheduler ={
+            initProps 
+            new StdSchedulerFactory(props).getScheduler
+        }
 
 	/**
 	 * Cancellable to later kill the job. Yes this is mutable, I'm sorry.
