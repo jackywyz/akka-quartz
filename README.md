@@ -1,6 +1,6 @@
-###copyright###
+##copyright
 core scala code(QuartzActor.scala) forking at [theatrus/akka-quartz](https://github.com/theatrus/akka-quartz)
-###Using###
+##Using
 
 Include the following dependency in your `build.sbt`:
 
@@ -59,7 +59,7 @@ object RunT{
 
 ```
 
-###Log config###
+##Log config
 add the logback.xml file at the directory of `src/main/resources`
 and add following configs in:  
 
@@ -93,6 +93,6 @@ and add following configs in:
 ```
 
 
-###TODO###
+##TODO
 * add CLUSTERED support
 
