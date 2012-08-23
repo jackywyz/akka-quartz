@@ -91,3 +91,8 @@ and add following configs in:
 
 </configuration>
 ```
+
+
+###TODO###
+* add CLUSTERED support
+
